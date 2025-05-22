@@ -10,10 +10,10 @@ function Ldemandes() {
   const [donneurs, setDonneurs] = useState([]);
 
 useEffect(() => {
-  const fetchDonations = async () => {
+  const fetchBloodRequest = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/donation', {
+      const response = await fetch('http://localhost:5000/api/blood_request/all', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -34,15 +34,15 @@ useEffect(() => {
     }
   };
 
-  fetchDonations();
+  fetchBloodRequest();
 }, []);
 
   
 
   const changerStatut = async (id, nouveauStatut) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/donation/${id}/statut`, {
-        method: "PUT",
+      const res = await fetch(`http://localhost:5000/api/blood_request/${id}/statut`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
@@ -65,23 +65,35 @@ useEffect(() => {
   // PDF/CSV/Excel — mettre à jour les bons champs
   const exporterPDF = (donneurs) => {
     const doc = new jsPDF();
-    doc.text("Liste des Dons", 14, 10);
+    doc.text("Liste des Demandes", 14, 10);
 
     autoTable(doc, {
       startY: 20,
       head: [
-        ["Nom", "Date de naissance", "Téléphone", "Sexe", "Poids", "Centre", "Groupage", "Date dispo", "Statut"],
+        [ "Nom",
+      "Sexe",
+      "Age",
+      "Téléphone",
+      "Groupage",
+      "Date Besoin",
+      "Date derniere transfusion",
+      "Quantité",
+      "Raison de la demande",
+      "Centre",
+      "Statut",],
       ],
       body: donneurs.map((d) => [
-        d.nom,
-        d.dateNaissance,
-        d.telephone,
-        d.sexe,
-        d.poids,
-        d.centre_id,
-        d.groupeSanguin,
-        d.dateDisponibilite,
-        d.statut || "en_attente",
+      d.nom,
+      d.sexe,
+      d.telephone,
+      d.age,
+      d.groupe_sanguin,
+      d.date_besoin,
+      d.date_derniere_transfusion,
+      d.quantity,
+      d.reason,
+      d.centre_id,
+      d.statut || "en_attente",
       ]),
     });
 
@@ -91,24 +103,28 @@ useEffect(() => {
   const exporterCSV = (donneurs) => {
     const headers = [
       "Nom",
-      "Date de naissance",
-      "Téléphone",
       "Sexe",
-      "Poids",
-      "Centre",
+      "Age",
+      "Téléphone",
       "Groupage",
-      "Date dispo",
+      "Date Besoin",
+      "Date derniere transfusion",
+      "Quantité",
+      "Raison de la demande",
+      "Centre",
       "Statut",
     ];
     const rows = donneurs.map((d) => [
       d.nom,
-      d.dateNaissance,
-      d.telephone,
       d.sexe,
-      d.poids,
+      d.telephone,
+      d.age,
+      d.groupe_sanguin,
+      d.date_besoin,
+      d.date_derniere_transfusion,
+      d.quantity,
+      d.reason,
       d.centre_id,
-      d.groupeSanguin,
-      d.dateDisponibilite,
       d.statut || "en_attente",
     ]);
 
@@ -120,7 +136,7 @@ useEffect(() => {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", "dons.csv");
+    link.setAttribute("download", "demandes_de_sang.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -139,7 +155,7 @@ useEffect(() => {
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-gray-900 to-black text-white p-4 md:p-6">
       <MedicalNavBar />
       <div className="mt-24 mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">Liste des Dons</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Liste des Demandes de sang</h1>
 
         <div className="flex flex-wrap gap-2">
           <button onClick={() => exporterCSV(donneurs)} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">Exporter en CSV</button>
@@ -154,13 +170,15 @@ useEffect(() => {
             <tr className="bg-red-800 text-white">
               <th className="p-2 border">Actions</th>
               <th className="p-2 border">Nom</th>
-              <th className="p-2 border">Date de Naissance</th>
-              <th className="p-2 border">Téléphone</th>
               <th className="p-2 border">Sexe</th>
-              <th className="p-2 border">Poids</th>
-              <th className="p-2 border">Centre</th>
+              <th className="p-2 border">Age</th>
+              <th className="p-2 border">Téléphone</th>
               <th className="p-2 border">Groupage</th>
-              <th className="p-2 border">Date dispo</th>
+              <th className="p-2 border">Date Besoin</th>
+              <th className="p-2 border">Date derniere trannsfusion</th>
+              <th className="p-2 border">Quantité</th>
+              <th className="p-2 border">Raison de la demande</th>
+              <th className="p-2 border">Centre</th>
               <th className="p-2 border">Statut</th>
             </tr>
           </thead>
@@ -168,19 +186,21 @@ useEffect(() => {
             {donneurs.map((d, index) => (
               <tr key={index} className="hover:bg-red-900">
                 <td className="p-2 border flex flex-col md:flex-row gap-1 md:gap-2">
-                  <button onClick={() => changerStatut(d.id, "valide")} className="bg-green-600 px-2 py-1 rounded hover:bg-green-700">Valider</button>
-                  <button onClick={() => changerStatut(d.id, "refuse")} className="bg-red-600 px-2 py-1 rounded hover:bg-red-700">Refuser</button>
-                  <button onClick={() => changerStatut(d.id, "en_attente")} className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700 text-black">En attente</button>
+                  <button onClick={() => changerStatut(d.id, "validée")} className="bg-green-600 px-2 py-1 rounded hover:bg-green-700">Valider</button>
+                  <button onClick={() => changerStatut(d.id, "refusée")} className="bg-red-600 px-2 py-1 rounded hover:bg-red-700">Refuser</button>
+                  <button onClick={() => changerStatut(d.id, "en attente")} className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700 text-black">En attente</button>
                 </td>
-                <td className="p-2 border">{d.nom}</td>
-                <td className="p-2 border">{d.dateNaissance}</td>
-                <td className="p-2 border">{d.telephone}</td>
-                <td className="p-2 border">{d.sexe}</td>
-                <td className="p-2 border">{d.poids}</td>
-                <td className="p-2 border">{d.centre_id}</td>
-                <td className="p-2 border">{d.groupeSanguin}</td>
-                <td className="p-2 border">{d.dateDisponibilite}</td>
-                <td className="p-2 border">{d.statut}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.nom}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.sexe}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.age}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.telephone}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.groupe_sanguin}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.date_besoin}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.date_derniere_transfusion}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.quantity_needed}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.reason}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.centre_id}</td>
+                <td className="p-2 border border-black text-black text-sm">{d.status}</td>
               </tr>
             ))}
           </tbody>

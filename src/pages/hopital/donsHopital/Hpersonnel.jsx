@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
 import { FaTint, FaUserMd, FaPlusCircle, FaListAlt, FaMapMarkerAlt,
   FaChartBar, FaPhoneAlt, FaCalendarAlt, FaFileMedical, FaHeartbeat, FaPhone, FaEnvelope, 
   FaHome} from 'react-icons/fa';
@@ -7,13 +7,57 @@ import { motion } from "framer-motion";
 import MedicalNavBar from '../../navbar/MedicalNavBar';
 
 
-
 export default function Hpersonel() {
+  const [stats, setStats] = useState({
+    stock: 0,
+    collectes: 0,
+    demandes: 0,
+  });
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res1 = await fetch("http://localhost:5000/api/stock/statsstock", {
+        headers: { Authorization: "Bearer " + token },
+      });
+      if (!res1.ok) throw new Error("Erreur stats stock");
+      const { total: stock } = await res1.json();
+      console.log(res1);
+
+      const res2 = await fetch("http://localhost:5000/api/collectes/statscollectes", {
+        headers: { Authorization: "Bearer " + token },
+      });
+      if (!res2.ok) throw new Error("Erreur stats collectes");
+      const { total: collectes } = await res2.json();
+      console.log(res2);
+      const res3 = await fetch("http://localhost:5000/api/blood_request/statsdemandes", {
+        headers: { Authorization: "Bearer " + token },
+      });
+      if (!res3.ok) throw new Error("Erreur stats demandes");
+      const { total: demandes } = await res3.json();
+      console.log(res3);
+
+      setStats({ stock, collectes, demandes });
+    } catch (err) {
+      console.error("Erreur de récupération des statistiques :", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   return (
-    <div className="pt-22 px-0 md:px-0 min-h-screen bg-red-50"
-      style={{ backgroundImage: "url('/dds2.png')", backgroundSize: "cover", backgroundPosition: "center" }}
->
-      <MedicalNavBar/>
+    <div
+      className="pt-22 px-0 md:px-0 min-h-screen bg-red-50"
+      style={{
+        backgroundImage: "url('/dds2.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <MedicalNavBar />
       <h2 className="text-4xl font-bold text-red-700 mb-10 text-center mt-8">
         🎯 Espace Personnel de l'Hôpital
       </h2>
@@ -24,7 +68,7 @@ export default function Hpersonel() {
           <FaTint className="text-red-600 text-3xl" />
           <div>
             <h3 className="text-gray-500 text-sm">Poches en stock</h3>
-            <p className="text-xl font-bold text-black ">132</p>
+            <p className="text-xl font-bold text-black">{stats.stock}</p>
           </div>
         </div>
 
@@ -32,7 +76,7 @@ export default function Hpersonel() {
           <FaCalendarAlt className="text-blue-600 text-3xl" />
           <div>
             <h3 className="text-gray-500 text-sm">Collectes à venir</h3>
-            <p className="text-xl font-bold text-black">4</p>
+            <p className="text-xl font-bold text-black">{stats.collectes}</p>
           </div>
         </div>
 
@@ -40,7 +84,7 @@ export default function Hpersonel() {
           <FaFileMedical className="text-green-600 text-3xl" />
           <div>
             <h3 className="text-gray-500 text-sm">Demandes en attente</h3>
-            <p className="text-xl font-bold ">7</p>
+            <p className="text-xl font-bold">{stats.demandes}</p>
           </div>
         </div>
       </div>
@@ -72,7 +116,7 @@ export default function Hpersonel() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         {/* Ajouter un Donneur */}
-        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-red-400 to-pink-500 p-6 text-white">
+        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-gray-400 p-6 text-white">
           <Link to="/ajouterdonneurH" className="flex flex-col items-center space-y-4">
             <FaPlusCircle className="text-5xl" />
             <h3 className="text-2xl font-bold">Ajouter un Donneur</h3>
@@ -81,7 +125,7 @@ export default function Hpersonel() {
         </motion.div>
 
         {/* Voir les Demandes */}
-        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-blue-600 p-6 text-white">
+        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-gray-400 p-6 text-white">
           <Link to="/liste_demandes" className="flex flex-col items-center space-y-4">
             <FaListAlt className="text-5xl" />
             <h3 className="text-2xl font-bold">Voir les Demandes</h3>
@@ -89,9 +133,18 @@ export default function Hpersonel() {
           </Link>
         </motion.div>
 
+         {/* Voir les donneurs */}
+        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-gray-400 p-6 text-white">
+          <Link to="/listedonneurs" className="flex flex-col items-center space-y-4">
+            <FaListAlt className="text-5xl" />
+            <h3 className="text-2xl font-bold">Liste des donneurs</h3>
+            <p className="text-center text-sm opacity-90">Suivre les donneurs de sang</p>
+          </Link>
+        </motion.div>
+
         {/* Gérer le Stock */}
-        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-purple-400 to-indigo-600 p-6 text-white">
-          <Link to="/gestion-stock" className="flex flex-col items-center space-y-4">
+        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-gray-400 p-6 text-white">
+          <Link to="/stocks" className="flex flex-col items-center space-y-4">
             <FaTint className="text-5xl" />
             <h3 className="text-2xl font-bold">Gérer le Stock</h3>
             <p className="text-center text-sm opacity-90">Contrôler la disponibilité du sang.</p>
@@ -99,16 +152,16 @@ export default function Hpersonel() {
         </motion.div>
 
         {/* Suivi des Collectes */}
-        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-green-400 to-teal-600 p-6 text-white mb-8">
+        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-gray-400 p-6 text-white mb-8">
           <Link to="/listecollecte" className="flex flex-col items-center space-y-4">
             <FaChartBar className="text-5xl" />
-            <h3 className="text-2xl font-bold">Suivi des Collectes</h3>
+            <h3 className="text-2xl font-bold">Suivi des Centres</h3>
             <p className="text-center text-sm opacity-90">Voir les opérations de dons programmées.</p>
           </Link>
         </motion.div>
 
         {/* Gérer les appels */}
-        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-amber-400 to-red-600 p-6 text-white mb-8">
+        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-gray-400 p-6 text-white mb-8">
           <Link to="/appeldon" className="flex flex-col items-center space-y-4">
             <FaPhoneAlt className="text-5xl" />
             <h3 className="text-2xl font-bold">Gérer les appels</h3>
@@ -117,8 +170,8 @@ export default function Hpersonel() {
         </motion.div>
 
         {/* liste des collectes */}
-        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-green-400 to-pink-600 p-6 text-white mb-8">
-          <Link to="/listecollecte" className="flex flex-col items-center space-y-4">
+        <motion.div whileHover={{ scale: 1.05 }} className="rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-400 to-gray-400 p-6 text-white mb-8 hover:bg-amber-600">
+          <Link to="/cdcollecte" className="flex flex-col items-center space-y-4">
             <FaHome className="text-5xl" />
             <h3 className="text-2xl font-bold">Voir les collectes</h3>
             <p className="text-center text-sm opacity-90">lister les collectes</p>
@@ -127,7 +180,7 @@ export default function Hpersonel() {
 
          
       </div>
-       <footer className="bg-red-800 text-white py-8 mt-10">
+       <footer className="bg-red-800/30 text-white py-8 mt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         
         {/* À propos */}

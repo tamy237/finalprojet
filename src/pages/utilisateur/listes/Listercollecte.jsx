@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import MedicalNavBar from '../../navbar/MedicalNavBar';
+import UserNavBar from "../../navbar/UserNavBar";
 
-function CentresMap() {
+function Listercollcte() {
   const [centres, setCentres] = useState([]);
   const [selectedCentre, setSelectedCentre] = useState(null);
   const [routeCoords, setRouteCoords] = useState([]);
@@ -49,46 +49,45 @@ function CentresMap() {
   }, []);
 
   // Supprimer un centre
-const handleDelete = async (id) => {
-  const confirm1 = window.confirm("⚠️ ATTENTION : Ce centre sera supprimé ainsi que toutes les collectes et demandes associées. Continuer ?");
-  if (!confirm1) return;
+// const handleDelete = async (id) => {
+//   const confirm1 = window.confirm("⚠️ ATTENTION : Ce centre sera supprimé ainsi que toutes les collectes et demandes associées. Continuer ?");
+//   if (!confirm1) return;
 
-  const confirm2 = window.confirm("Confirmez-vous la suppression définitive de ce centre ?");
-  if (!confirm2) return;
+//   const confirm2 = window.confirm("Confirmez-vous la suppression définitive de ce centre ?");
+//   if (!confirm2) return;
 
-  try {
-    const res = await fetch(`http://localhost:5000/api/centresroutes/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    });
+//   try {
+//     const res = await fetch(`http://localhost:5000/api/centresroutes/${id}`, {
+//       method: "DELETE",
+//       headers: {
+//         Authorization: "Bearer " + localStorage.getItem("token"),
+//       },
+//     });
 
-    if (res.ok) {
-      alert("✅ Centre supprimé avec succès, ainsi que les données associées.");
-      fetchCentres(); // Met à jour la liste
-    } else {
-      const errData = await res.json();
-      alert("❌ Erreur lors de la suppression : " + (errData.message || "Erreur inconnue"));
-    }
-  } catch (error) {
-    console.error("Erreur suppression centre:", error);
-    alert("❌ Une erreur réseau s'est produite.");
-  }
-  console.log(`Centre ID ${id} supprimé par l'utilisateur ID ${req.user.id} à ${new Date().toISOString()}`);
+//     if (res.ok) {
+//       alert("✅ Centre supprimé avec succès, ainsi que les données associées.");
+//       fetchCentres(); // Met à jour la liste
+//     } else {
+//       const errData = await res.json();
+//       alert("❌ Erreur lors de la suppression : " + (errData.message || "Erreur inconnue"));
+//     }
+//   } catch (error) {
+//     console.error("Erreur suppression centre:", error);
+//     alert("❌ Une erreur réseau s'est produite.");
+//   }
+//   console.log(`Centre ID ${id} supprimé par l'utilisateur ID ${req.user.id} à ${new Date().toISOString()}`);
 
-};
-
-
+// };
 
 
-  // Modifier un centre
-  const handleEdit = (centre) => {
-    // TODO : Rediriger ou afficher un formulaire pour modification
-    alert("Modification du centre: " + centre.name);
-    // Exemple : navigate(`/modifier-centre/${centre.id}`) si tu utilises React Router
-  };
 
+
+//   // Modifier un centre
+//   const handleEdit = (centre) => {
+//     // TODO : Rediriger ou afficher un formulaire pour modification
+//     alert("Modification du centre: " + centre.name);
+//     // Exemple : navigate(`/modifier-centre/${centre.id}`) si tu utilises React Router
+//   };
 
   // Calcul de l’itinéraire avec OpenRouteService
   useEffect(() => {
@@ -125,12 +124,12 @@ const handleDelete = async (id) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <MedicalNavBar />
+      <UserNavBar />
 
       <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] mt-18">
         {/* Liste des centres */}
-        <div className="md:w-1/3 overflow-y-auto bg-amber-50 p-4 shadow text-white">
-          <h2 className="text-xl font-bold mb-4">Centres enregistrés</h2>
+        <div className="md:w-1/3 overflow-y-auto bg-amber-50 p-4 shadow text-black">
+          <h2 className="text-xl font-bold mb-4 text-black">Centres enregistrés</h2>
           {centres.map(centre => (
             <div
               key={centre.id}
@@ -143,21 +142,6 @@ const handleDelete = async (id) => {
                 <h3 className="font-semibold">{centre.name}</h3>
                 <p>{centre.address || centre.location}</p>
                 <p className="text-sm text-red-500">{centre.phone}</p>
-              </div>
-
-              <div className="flex justify-between mt-2">
-                <button
-                  onClick={() => handleEdit(centre)}
-                  className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-800 text-sm"
-                >
-                  🖊️ Modifier
-                </button>
-                <button
-                  onClick={() => handleDelete(centre.id)}
-                  className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-800 text-sm"
-                >
-                  🗑️ Supprimer
-                </button>
               </div>
             </div>
           ))}
@@ -208,4 +192,4 @@ const handleDelete = async (id) => {
   );
 }
 
-export default CentresMap;
+export default Listercollcte;

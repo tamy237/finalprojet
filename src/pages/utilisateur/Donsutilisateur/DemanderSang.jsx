@@ -204,12 +204,12 @@ console.log("Payload envoyé :", payload);
                  {/* Centre */}
                   <div className="flex flex-col">
                     <label className="mb-2 font-semibold text-gray-700 flex items-center">
-                      <FaMapMarkerAlt className="mr-2 text-red-600" /> Centre de collecte
+                      <FaMapMarkerAlt className="mr-2 text-red-600" /> Centre de demande
                     </label>
                     <select
                       value={centreId}
                       onChange={(e) => setCentreId(e.target.value)}
-                      className="border border-gray-300 text-black p-3 rounded-lg"
+                      className="border border-gray-500 text-black p-3 rounded-lg"
                       required
                     >
                       <option value="">Choisir un centre</option>
@@ -226,7 +226,7 @@ console.log("Payload envoyé :", payload);
                   className={`w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-lg transition ${isLoading ? 'cursor-wait' : ''}`}
                   disabled={isLoading}
                 >
-                  Faire un don
+                  Envoyer ma demande
                 </button>
 
                 {message && <p className="text-green-600 font-medium mt-4">{message}</p>}

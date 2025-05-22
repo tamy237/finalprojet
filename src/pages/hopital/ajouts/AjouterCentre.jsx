@@ -1,5 +1,5 @@
 import MedicalNavBar from "../../navbar/MedicalNavBar";
-import React,{ useState } from 'react';
+import React,{ useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBuilding, FaMapMarkerAlt, FaMapSigns, FaPhone } from "react-icons/fa";
 
@@ -9,10 +9,25 @@ export default function AjouterCentre({ role }) {
     const [adresse, setAdresse] = useState("");
     const [telephone, setTelephone] = useState("");
     const [message, setMessage] = useState("");
-  
+    const [latitude, setLatitude] = useState("");
+    const [longitude, setLongitude] = useState("");
+
     const navigate = useNavigate();
-  
+  useEffect(() => {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      setLatitude(position.coords.latitude);
+      setLongitude(position.coords.longitude);
+    },
+    (error) => {
+      console.error("Erreur de géolocalisation :", error);
+    }
+  );
+}, []);
+
     const handleAjouterCentre = async (e) => {
+     const token = localStorage.getItem('token'); // ✅ récupère le token
+
         e.preventDefault();
     
         if (!nom || !ville || !adresse || !telephone) {
@@ -25,13 +40,18 @@ export default function AjouterCentre({ role }) {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                 Authorization: `Bearer ${token}`,
+
               },
               body: JSON.stringify({
                 name: nom,
                 location: ville,
                 address: adresse,
-                phone: telephone
+                phone: telephone,
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude)
               }),
+
             });
           
             if (!response.ok) {
@@ -41,8 +61,15 @@ export default function AjouterCentre({ role }) {
             }
           
             const data = await response.json();
+
+            if (response.ok) {
+            alert("Centre ajouté avec succès !!!");
+            navigate("/personnelHopital");
+          } else {
+            alert(data.error || "Une erreur est survenue lors de l'ajout.");
+          }
             setMessage("Centre ajouté avec succès !");
-            console.log("Centre ajouté :", data);
+            // console.log("Centre ajouté :", data);
           
             // ✅ Réinitialisation correcte des champs
             setNom('');
@@ -57,9 +84,9 @@ export default function AjouterCentre({ role }) {
       };
   
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-100 flex flex-col mt-24">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-100 flex flex-col mt-0">
         <MedicalNavBar role={role} />
-        <main className="flex-grow flex flex-col items-center justify-center px-6 py-12 mt-12">
+        <main className="flex-grow flex flex-col items-center justify-center px-6 py-12 mt-20">
           <p className="text-gray-700 text-2xl mb-4">
             Veuillez entrer les informations du centre de collecte.
           </p>
@@ -123,6 +150,39 @@ export default function AjouterCentre({ role }) {
                 required
               />
             </div>
+
+            {/* Latitude */}
+    <div className="flex flex-col">
+      <label className="mb-2 font-semibold text-gray-700 flex items-center">
+        <FaMapMarkerAlt className="mr-2 text-red-600" /> Latitude
+      </label>
+      <input
+        type="number"
+        value={latitude}
+        onChange={(e) => setLatitude(e.target.value)}
+        placeholder="Entrez la latitude"
+        className="border border-gray-300 text-black p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300"
+        required
+        step="any"
+      />
+    </div>
+
+    {/* Longitude */}
+    <div className="flex flex-col">
+      <label className="mb-2 font-semibold text-gray-700 flex items-center">
+        <FaMapMarkerAlt className="mr-2 text-red-600" /> Longitude
+      </label>
+      <input
+        type="number"
+        value={longitude}
+        onChange={(e) => setLongitude(e.target.value)}
+        placeholder="Entrez la longitude"
+        className="border border-gray-300 text-black p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300"
+        required
+        step="any"
+      />
+    </div>
+
   
             <button
               type="submit"

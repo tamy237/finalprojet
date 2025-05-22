@@ -9,46 +9,51 @@ import { saveAs } from "file-saver";
 function Ldons() {
   const [donneurs, setDonneurs] = useState([]);
 
+
 useEffect(() => {
   const fetchDonations = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/donation', {
+      const response = await fetch('http://localhost:5000/api/donation/all', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-
-      if (!response.ok) {
+        if (!response.ok) {
         const err = await response.json();
         console.error("Erreur lors du chargement :", err.message);
-        setDonneurs([]); // Évite .map crash
+        setDonneurs([]); // Evite .map crash
         return;
       }
 
       const data = await response.json();
+
+      // Si chaque don contient un utilisateur dans data[i].User
+      // Tu peux filtrer ou transformer si besoin, sinon juste stocker directement
       setDonneurs(data);
     } catch (err) {
       console.error("Erreur réseau :", err);
-      setDonneurs([]); // En cas d’erreur, valeur sûre
+      setDonneurs([]);
     }
   };
 
   fetchDonations();
 }, []);
 
+
   
 
   const changerStatut = async (id, nouveauStatut) => {
     try {
       const res = await fetch(`http://localhost:5000/api/donation/${id}/statut`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
         body: JSON.stringify({ statut: nouveauStatut }),
       });
+      // console.log(nouveauStatut);
 
       if (!res.ok) throw new Error("Échec de mise à jour du statut");
 
@@ -64,76 +69,91 @@ useEffect(() => {
 
   // PDF/CSV/Excel — mettre à jour les bons champs
   const exporterPDF = (donneurs) => {
-    const doc = new jsPDF();
-    doc.text("Liste des Dons", 14, 10);
+  const doc = new jsPDF();
+  doc.text("Liste des Dons", 14, 10);
 
-    autoTable(doc, {
-      startY: 20,
-      head: [
-        ["Nom", "Date de naissance", "Téléphone", "Sexe", "Poids", "Centre", "Groupage", "Date dispo", "Statut"],
-      ],
-      body: donneurs.map((d) => [
-        d.nom,
-        d.dateNaissance,
-        d.telephone,
-        d.sexe,
-        d.poids,
-        d.centre_id,
-        d.groupeSanguin,
-        d.dateDisponibilite,
-        d.statut || "en_attente",
-      ]),
-    });
+  autoTable(doc, {
+    startY: 20,
+    head: [
+      ["Nom", "Date de naissance", "Téléphone", "Sexe", "Poids", "Centre", "Groupage", "Date dispo", "Statut"],
+    ],
+    body: donneurs.map((d) => [
+      d.user?.nom || "—",
+      d.dateNaissance || "—",
+      d.user?.telephone || "—",
+      d.sexe || "—",
+      d.poids || "—",
+      d.centre?.nom || d.centre_id || "—",
+      d.user?.groupeSanguin || "—",
+      d.dateDisponibilite || "—",
+      d.statut || "en_attente",
+    ]),
+  });
 
-    doc.save("dons.pdf");
-  };
+  doc.save("dons.pdf");
+};
 
   const exporterCSV = (donneurs) => {
-    const headers = [
-      "Nom",
-      "Date de naissance",
-      "Téléphone",
-      "Sexe",
-      "Poids",
-      "Centre",
-      "Groupage",
-      "Date dispo",
-      "Statut",
-    ];
-    const rows = donneurs.map((d) => [
-      d.nom,
-      d.dateNaissance,
-      d.telephone,
-      d.sexe,
-      d.poids,
-      d.centre_id,
-      d.groupeSanguin,
-      d.dateDisponibilite,
-      d.statut || "en_attente",
-    ]);
+  const headers = [
+    "Nom",
+    "Date de naissance",
+    "Téléphone",
+    "Sexe",
+    "Poids",
+    "Centre",
+    "Groupage",
+    "Date dispo",
+    "Statut",
+  ];
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) => row.join(",")),
-    ].join("\n");
+  const rows = donneurs.map((d) => [
+    d.user?.nom || "—",
+    d.dateNaissance || "—",
+    d.user?.telephone || "—",
+    d.sexe || "—",
+    d.poids || "—",
+    d.centre?.nom || d.centre_id || "—",
+    d.user?.groupeSanguin || "—",
+    d.dateDisponibilite || "—",
+    d.statut || "en_attente",
+  ]);
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", "dons.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) => row.join(",")),
+  ].join("\n");
 
-  const exporterExcel = (donneurs) => {
-    const worksheet = XLSX.utils.json_to_sheet(donneurs);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Dons");
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(data, "dons.xlsx");
-  };
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", "liste_des_dons.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+
+const exporterExcel = (donneurs) => {
+  const data = donneurs.map((d) => ({
+    Nom: d.user?.nom || "—",
+    "Date de naissance": d.dateNaissance || "—",
+    Téléphone: d.user?.telephone || "—",
+    Sexe: d.sexe || "—",
+    Poids: d.poids || "—",
+    Centre: d.centre?.nom || d.centre_id || "—",
+    Groupage: d.user?.groupeSanguin || "—",
+    "Date dispo": d.dateDisponibilite || "—",
+    Statut: d.statut || "en_attente"
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Dons");
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(blob, "dons.xlsx");
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-gray-900 to-black text-white p-4 md:p-6">
@@ -165,24 +185,27 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-            {donneurs.map((d, index) => (
+            {donneurs.map((d, index) => {
+              // console.log("DONNEUR:", d);
+              return(
               <tr key={index} className="hover:bg-red-900">
                 <td className="p-2 border flex flex-col md:flex-row gap-1 md:gap-2">
                   <button onClick={() => changerStatut(d.id, "valide")} className="bg-green-600 px-2 py-1 rounded hover:bg-green-700">Valider</button>
                   <button onClick={() => changerStatut(d.id, "refuse")} className="bg-red-600 px-2 py-1 rounded hover:bg-red-700">Refuser</button>
                   <button onClick={() => changerStatut(d.id, "en_attente")} className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700 text-black">En attente</button>
                 </td>
-                <td className="p-2 border">{d.nom}</td>
-                <td className="p-2 border">{d.dateNaissance}</td>
-                <td className="p-2 border">{d.telephone}</td>
-                <td className="p-2 border">{d.sexe}</td>
-                <td className="p-2 border">{d.poids}</td>
-                <td className="p-2 border">{d.centre_id}</td>
-                <td className="p-2 border">{d.groupeSanguin}</td>
-                <td className="p-2 border">{d.dateDisponibilite}</td>
-                <td className="p-2 border">{d.statut}</td>
+                <td className="p-2 border text-sm text-black">{d.User?.name}</td>
+                <td className="p-2 border text-sm text-black">{d.dateNaissance}</td>
+                <td className="p-2 border text-sm text-black">{d.User?.phone}</td>
+                <td className="p-2 border text-sm text-black">{d.sexe}</td>
+                <td className="p-2 border text-sm text-black">{d.poids}</td>
+                <td className="p-2 border text-sm text-black">{d.centre_id}</td>
+                <td className="p-2 border text-sm text-black">{d.groupeSanguin}</td>
+                <td className="p-2 border text-sm text-black">{d.dateDisponibilite}</td>
+                <td className="p-2 border text-sm text-black">{d.statut}</td>
               </tr>
-            ))}
+              );
+})}
           </tbody>
         </table>
       </div>

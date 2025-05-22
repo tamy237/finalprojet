@@ -40,7 +40,6 @@ export default function Vue1() {
         </div>
         )} */}
 
-        <MedicalNavBar/>
         {/* Contenu principal */}
         <main className="flex-grow flex flex-col items-center justify-center text-center px-6 mt-26">
         <h2 className="text-4xl font-bold text-gray-800 mb-10">Bienvenue à la Banque de Sang</h2>

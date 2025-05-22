@@ -1,54 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import MedicalNavBar from '../../navbar/MedicalNavBar';
 
 function Appeldonneurs() {
   const [showForm, setShowForm] = useState(false);
+  const [centres, setCentres] = useState([]);
+  const [collectes, setCollectes] = useState([]);
+  const [appels, setAppels] = useState([]);
+
   const [nouvelAppel, setNouvelAppel] = useState({
-    lieu: '',
-    cts: '',
+    centre_id: '',
+    collecte_id: '',
     groupeSanguin: '',
     date: '',
     heure: '',
   });
+useEffect(() => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error('Aucun token trouvé');
+    return;
+  }
 
-  // ✅ Initialisation correcte du tableau d'appels
-  const [appels, setAppels] = useState([
-    {
-      id: 1,
-      groupeSanguin: 'O+',
-      cts: 'CTS Yaoundé',
-      date: '2025-05-03',
-      heure: '10:00',
-      lieu: 'Hôpital Général',
-    },
-    {
-      id: 2,
-      groupeSanguin: 'A-',
-      cts: 'CTS Douala',
-      date: '2025-05-04',
-      heure: '09:00',
-      lieu: 'Bonamoussadi',
-    },
-  ]);
+  fetch('http://localhost:5000/api/centresroutes', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(res => {
+    // console.log('Centres récupérés:', res); // 👈 Vérifie ici
+      if (!res.ok) {
+        throw new Error(`Erreur autorisation ou serveur - code ${res.status}`);
+      }
+      return res.json();
+    })
+    .then(data => {
+  // console.log('✅ Données des centres :', data); // <--- Ajoute ça
+  setCentres(data);
+})
+    .catch(err => console.error('Erreur chargement centres :', err));
+}, []);
 
-  const handleChange = (e) => {
-    setNouvelAppel({ ...nouvelAppel, [e.target.name]: e.target.value });
-  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+useEffect(() => {
+  const token = localStorage.getItem('token');
 
-    // ✅ Vérification rapide des champs (en cas de fail du "required")
-    if (!nouvelAppel.lieu || !nouvelAppel.cts || !nouvelAppel.groupeSanguin || !nouvelAppel.date || !nouvelAppel.heure) {
-      alert('Tous les champs sont requis.');
+  fetch('http://localhost:5000/api/collectes', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Erreur autorisation ou serveur');
+      }
+      return res.json();
+    })
+    .then(data => setCollectes(data))
+    .catch(err => console.error('Erreur chargement collectes :', err));
+}, []);
+
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!nouvelAppel.lieu || !nouvelAppel.cts || !nouvelAppel.groupeSanguin || !nouvelAppel.date || !nouvelAppel.heure) {
+    alert('Tous les champs sont requis.');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/api/appels', {  // Remplace l’URL si besoin
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(nouvelAppel)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(`Erreur: ${errorData.message}`);
       return;
     }
 
-    const nouvelId = appels.length + 1;
-    setAppels((prevAppels) => [...prevAppels, { id: nouvelId, ...nouvelAppel }]);
+    const data = await response.json();
+    alert(data.message); // "Appel créé et donneurs notifiés."
 
-    // 🔁 Réinitialisation
+    // Ajouter localement à l’état pour affichage instantané
+    const nouvelId = appels.length + 1;
+    setAppels([...appels, { id: nouvelId, ...nouvelAppel }]);
+
+    // Réinitialisation
     setShowForm(false);
     setNouvelAppel({
       lieu: '',
@@ -57,47 +105,77 @@ function Appeldonneurs() {
       date: '',
       heure: '',
     });
-  };
+    setShowForm(false);
+
+  } catch (error) {
+    console.error('Erreur lors de la soumission de l’appel :', error);
+    alert('Une erreur est survenue. Vérifie ta connexion ou réessaye.');
+  }
+};
+
+
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setNouvelAppel((prev) => ({ ...prev, [name]: value }));
+};
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <MedicalNavBar/>
-      {/* Titre + bouton d’ajout */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-red-100 p-6">
+      <MedicalNavBar />
+      <div className="flex items-center justify-between mb-10 mt-18">
         <h2 className="text-2xl font-bold text-red-700">📣 Appels aux Donneurs</h2>
         <button
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+          className="bg-red-600 text-black px-4 py-2 rounded hover:bg-red-700 transition"
           onClick={() => setShowForm(!showForm)}
         >
           ➕ Nouvel Appel
         </button>
       </div>
 
-      {/* Formulaire d'ajout */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow-md mb-6">
+        <form onSubmit={handleSubmit} className="bg-gray-300 p-4 rounded shadow-md mb-6 text-black hover:bg-blue-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="lieu"
-              placeholder="Lieu de la collecte"
-              className="border p-2 rounded"
-              value={nouvelAppel.lieu}
+            {/* Sélection du centre */}
+            <select
+            name="centre_id"
+            className="border p-2 rounded text-black"
+            value={nouvelAppel.centre_id}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Sélectionnez un centre</option>
+            {centres.length === 0 ? (
+              <option disabled>Aucun centre disponible</option>
+            ) : (
+              centres.map((centre) => (
+                <option key={centre.id} value={centre.id}>
+                  {centre.name}
+                </option>
+              ))
+            )}
+          </select>
+
+
+            {/* Sélection de la collecte */}
+            <select
+              name="collecte_id"
+              className="border p-2 rounded text-black"
+              value={nouvelAppel.collecte_id}
               onChange={handleChange}
               required
-            />
-            <input
-              type="text"
-              name="cts"
-              placeholder="CTS organisateur"
-              className="border p-2 rounded"
-              value={nouvelAppel.cts}
-              onChange={handleChange}
-              required
-            />
+            >
+              <option value="">Choisir une collecte</option>
+              {collectes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.type} - {c.date}
+                </option>
+              ))}
+            </select>
+
+            {/* Groupe sanguin */}
             <select
               name="groupeSanguin"
-              className="border p-2 rounded"
+              className="border p-2 rounded text-black"
               value={nouvelAppel.groupeSanguin}
               onChange={handleChange}
               required
@@ -112,10 +190,12 @@ function Appeldonneurs() {
               <option value="O+">O+</option>
               <option value="O-">O-</option>
             </select>
+
+            {/* Date et heure */}
             <input
               type="date"
               name="date"
-              className="border p-2 rounded"
+              className="border p-2 rounded text-black"
               value={nouvelAppel.date}
               onChange={handleChange}
               required
@@ -123,43 +203,43 @@ function Appeldonneurs() {
             <input
               type="time"
               name="heure"
-              className="border p-2 rounded"
+              className="border p-2 rounded text-black"
               value={nouvelAppel.heure}
               onChange={handleChange}
               required
             />
           </div>
           <div className="mt-4 text-right">
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-900">
               ✅ Valider l’appel
             </button>
           </div>
         </form>
       )}
 
-      {/* Liste des appels en cours */}
-      <div className="bg-white p-4 rounded shadow">
+      {/* Liste des appels */}
+      <div className="bg-gray-200 p-4 rounded shadow">
         <h3 className="text-lg font-semibold mb-4 text-gray-700">📋 Appels en cours</h3>
-        {Array.isArray(appels) && appels.length > 0 ? (
-          appels.map((collecte) => (
+        {appels.length > 0 ? (
+          appels.map((appel) => (
             <div
-              key={collecte.id}
-              className="bg-white rounded-2xl shadow-md mb-6 p-6 border-l-8 border-red-600"
+              key={appel.id}
+              className="bg-gray-300 rounded-2xl shadow-md mb-6 p-6 border-l-8 border-red-600"
             >
               <div className="flex flex-col md:flex-row md:justify-between md:items-center">
                 <div>
                   <h2 className="text-xl font-semibold text-red-700 mb-2">
-                    {collecte.lieu}
+                    {appel.centreNom}
                   </h2>
                   <p>
                     <FaMapMarkerAlt className="inline mr-1 text-red-500" />
-                    <strong>CTS :</strong> {collecte.cts}
+                    <strong>Collecte :</strong> {appel.collecte?.type} - {appel.collecte?.date}
                   </p>
                   <p>
-                    <strong>Date :</strong> {collecte.date} à {collecte.heure}
+                    <strong>Date :</strong> {appel.date} à {appel.heure}
                   </p>
                   <p>
-                    <strong>Groupe ciblé :</strong> {collecte.groupeSanguin}
+                    <strong>Groupe ciblé :</strong> {appel.groupeSanguin}
                   </p>
                 </div>
               </div>

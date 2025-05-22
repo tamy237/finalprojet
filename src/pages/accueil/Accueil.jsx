@@ -37,7 +37,7 @@ function Accueil() {
       Offrez une seconde chance, sauvez des vies avec un simple geste.
     </p>
     <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-      <Link to="/listecollecte">
+      <Link to="/ltc">
         <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg">
           Trouver une collecte
         </button>
@@ -86,7 +86,7 @@ function Accueil() {
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-red-700 mb-3">
               Pourquoi donner son sang ?
             </h2>
-            <p className="text-lg sm:text-base md:text-lg text-gray-900 leading-relaxed">
+            <p className="text-xl sm:text-base md:text-xl text-black leading-relaxed">
               Le don de sang est un acte volontaire et généreux qui sauve des vies chaque jour.
               Il permet de soigner les malades et victimes d'accidents.
             </p>
@@ -101,6 +101,18 @@ function Accueil() {
             </h2>
             <p className="text-xl sm:text-base md:text-xl text-black leading-relaxed">
               Une poche de sang peut sauver jusqu'à 3 vies. Chaque don compte et change des destins.
+            </p>
+          </div>
+        </div>
+
+         {/* Slide 3 */}
+        <div className="flex items-center justify-center px-4 py-6 min-h-[250px] sm:min-h-[300px] md:min-h-[350px]">
+          <div className="text-center px-2 sm:px-4">
+            <h2 className="text-2xl sm:text-2xl md:text-4xl font-bold text-red-700 mb-3">
+              important!!!!!!!
+            </h2>
+            <p className="text-xl sm:text-base md:text-xl text-black leading-relaxed">
+              Trouvez des centres de collecte et donnez du sang. Une poche donné trois vies sauvés 
             </p>
           </div>
         </div>
@@ -124,7 +136,7 @@ function Accueil() {
         }}
       >
         {/* Faire un Don */}
-        <motion.div variants={cardVariants} whileHover={{ scale: 1.05 }} className="relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-rose-400 to-pink-600 p-6 text-white">
+        <motion.div variants={cardVariants} whileHover={{ scale: 1.05 }} className="relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-rose-900 to-pink-300 p-6 text-white">
           <Link to="/controle_don" className="flex flex-col items-center space-y-4">
             <FaHandHoldingHeart className="text-5xl" />
             <h3 className="text-2xl font-bold">Faire un Don</h3>
@@ -134,7 +146,7 @@ function Accueil() {
         </motion.div>
 
         {/* Demander du Sang */}
-        <motion.div variants={cardVariants} whileHover={{ scale: 1.05 }} className="relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-red-400 to-red-600 p-6 text-white">
+        <motion.div variants={cardVariants} whileHover={{ scale: 1.05 }} className="relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-rose-900 to-pink-300 p-6 text-white">
           <Link to="/demander_sang" className="flex flex-col items-center space-y-4">
             <FaTint className="text-5xl" />
             <h3 className="text-2xl font-bold">Demander du Sang</h3>
@@ -144,7 +156,7 @@ function Accueil() {
         </motion.div>
 
         {/* Mes Rendez-vous */}
-        <motion.div variants={cardVariants} whileHover={{ scale: 1.05 }} className="relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 p-6 text-white">
+        <motion.div variants={cardVariants} whileHover={{ scale: 1.05 }} className="relative rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-rose-900 to-pink-300 p-6 text-white">
           <Link to="/mes-rendez-vous" className="flex flex-col items-center space-y-4">
             <FaRegCalendarAlt className="text-5xl" />
             <h3 className="text-2xl font-bold">Mes Rendez-vous</h3>
@@ -154,8 +166,8 @@ function Accueil() {
         </motion.div>
       </motion.div>
       {/* Footer principal */}
-      <footer className="bg-gray-900/60 text-white py-8 px-0 mt-12 w-full">
-            <section className="bg-gray-600/20 text-white py-12 px-4 text-center">
+      <footer className="bg-rose-900/50 text-white py-8 px-0 mt-12 w-full">
+            <section className="bg-rose-300/20 text-white py-12 px-4 text-center">
                 <h2 className="text-3xl font-bold mb-4">Prêt à sauver des vies ?</h2>
                  <Link to="/register" className="flex flex-col items-center space-y-4">
              <button className="bg-white text-red-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200">
